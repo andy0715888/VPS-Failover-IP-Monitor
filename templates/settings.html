@@ -117,7 +117,6 @@
     document.getElementById('settingsForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const formData = new FormData(this);
-        // 若密码非空，添加到请求中（后端需要特殊处理，这里为简化，可以忽略密码修改）
         const response = await fetch('/settings', {method: 'POST', body: formData});
         const result = await response.json();
         const resultDiv = document.getElementById('saveResult');
