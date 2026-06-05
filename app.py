@@ -5,17 +5,19 @@ import json
 import threading
 import time
 import hashlib
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from modules.monitor import MonitorThread
-from modules.switch_ip import switch_outgoing_ip
-from modules.cloudflare_dns import delete_old_records, add_new_record
-from modules.config import load_config, save_config, get_current_status
+from flask import Flask, render_template, request, jsonify, session, redirect, url_func
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 CONFIG_FILE = '/opt/ip_failover/config.json'
 LOG_DIR = '/opt/ip_failover/logs'
+
+# 导入模块
+from modules.config import load_config, save_config, get_current_status
+from modules.monitor import MonitorThread
+from modules.switch_ip import switch_outgoing_ip
+from modules.cloudflare_dns import delete_old_records, add_new_record
 
 # 全局监控线程对象
 monitor_thread = None
@@ -40,7 +42,6 @@ def login():
             session['logged_in'] = True
             return redirect(url_for('index'))
         else:
-            # 如果尚未设置密码，允许首次设置
             if not expected_hash:
                 config['web']['password_hash'] = hashlib.sha256(password.encode()).hexdigest()
                 config['web']['username'] = username
@@ -95,7 +96,6 @@ def settings():
             }
         }
         save_config(CONFIG_FILE, new_config)
-        # 重启监控线程
         restart_monitor()
         return jsonify({"status": "success", "message": "配置已保存，监控已重启"})
     config = load_config(CONFIG_FILE)
@@ -107,7 +107,7 @@ def logs():
     log_file = os.path.join(LOG_DIR, 'failover.log')
     if os.path.exists(log_file):
         with open(log_file, 'r') as f:
-            content = f.read().splitlines()[-200:]  # 最后200行
+            content = f.read().splitlines()[-200:]
     else:
         content = []
     return render_template('logs.html', logs=content)
@@ -115,15 +115,14 @@ def logs():
 @app.route('/api/switch_now', methods=['POST'])
 @require_auth
 def api_switch_now():
-    """手动触发切换"""
     config = load_config(CONFIG_FILE)
     try:
         new_ip = switch_outgoing_ip(config)
-        if new_ip and config['cloudflare']['api_token']:
+        if new_ip and config['cloudflare'].get('api_token'):
             old_ip = config['network']['current_src_ip']
-            if config['cloudflare']['delete_old_records']:
+            if config['cloudflare'].get('delete_old_records'):
                 delete_old_records(config, old_ip)
-            if config['cloudflare']['add_new_record']:
+            if config['cloudflare'].get('add_new_record'):
                 add_new_record(config, new_ip)
         return jsonify({"status": "success", "new_ip": new_ip})
     except Exception as e:
