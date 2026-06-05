@@ -41,7 +41,7 @@ cp -r $SCRIPT_DIR/* $INSTALL_DIR/ 2>/dev/null || true
 
 # 安装 Python 依赖
 echo -e "${YELLOW}[4/6] 安装 Python 依赖...${NC}"
-pip3 install flask requests ping3 netifaces
+pip3 install flask requests ping3 netifaces --break-system-packages
 
 # 检测网络配置
 echo -e "${YELLOW}[5/6] 自动检测网络配置...${NC}"
