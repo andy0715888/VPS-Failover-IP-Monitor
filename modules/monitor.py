@@ -28,7 +28,6 @@ class MonitorThread(threading.Thread):
         print(log_line.strip())
 
     def ping_target(self, target, count, timeout):
-        """返回是否成功（至少收到一个回应）"""
         try:
             cmd = ['ping', '-c', str(count), '-W', str(timeout), target]
             result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -46,7 +45,6 @@ class MonitorThread(threading.Thread):
             timeout = monitor_cfg['timeout_sec']
             threshold = monitor_cfg['failure_threshold']
 
-            # 对每个目标进行 ping，全部成功才算成功
             success = True
             for target in targets:
                 if not self.ping_target(target.strip(), count, timeout):
@@ -69,16 +67,13 @@ class MonitorThread(threading.Thread):
                 self.fail_count = 0
                 update_status(fail_count=0, last_success_time=datetime.now().isoformat())
 
-            # 等待下一次检查
             time.sleep(monitor_cfg['interval_sec'])
 
     def do_failover(self, config):
         try:
-            # 记录旧 IP
             old_ip = config['network']['current_src_ip']
             self.log(f"开始故障转移，旧 IP: {old_ip}")
 
-            # 切换出口 IP
             new_ip = switch_outgoing_ip(config)
             if not new_ip:
                 self.log("切换 IP 失败，无可用其他 IP")
@@ -86,8 +81,7 @@ class MonitorThread(threading.Thread):
 
             self.log(f"出口 IP 已切换为: {new_ip}")
 
-            # 更新 Cloudflare DNS
-            cf_cfg = config['cloudflare']
+            cf_cfg = config.get('cloudflare', {})
             if cf_cfg.get('api_token'):
                 if cf_cfg.get('delete_old_records'):
                     delete_old_records(config, old_ip)
