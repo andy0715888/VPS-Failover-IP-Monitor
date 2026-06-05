@@ -1,7 +1,6 @@
 import requests
 
 def get_zone_id(api_token, domain):
-    """根据域名获取 Zone ID"""
     url = f"https://api.cloudflare.com/client/v4/zones?name={domain}"
     headers = {"Authorization": f"Bearer {api_token}", "Content-Type": "application/json"}
     resp = requests.get(url, headers=headers)
@@ -12,7 +11,6 @@ def get_zone_id(api_token, domain):
     return None
 
 def delete_old_records(config, ip_address):
-    """删除该域名下所有指向 old_ip 的 A 记录"""
     cf = config['cloudflare']
     api_token = cf.get('api_token')
     zone_id = cf.get('zone_id')
@@ -24,8 +22,6 @@ def delete_old_records(config, ip_address):
             raise Exception(f"无法获取域名 {domain} 的 Zone ID")
 
     headers = {"Authorization": f"Bearer {api_token}", "Content-Type": "application/json"}
-
-    # 获取所有 A 记录
     url = f"https://api.cloudflare.com/client/v4/zones/{zone_id}/dns_records?type=A&name={domain}"
     resp = requests.get(url, headers=headers)
     if resp.status_code != 200:
@@ -40,7 +36,6 @@ def delete_old_records(config, ip_address):
                 raise Exception(f"删除记录 {record['id']} 失败")
 
 def add_new_record(config, new_ip):
-    """添加新的 A 记录指向 new_ip"""
     cf = config['cloudflare']
     api_token = cf.get('api_token')
     zone_id = cf.get('zone_id')
