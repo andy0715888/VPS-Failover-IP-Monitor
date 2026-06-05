@@ -1,0 +1,28 @@
+{
+    "monitor": {
+        "targets": ["1.1.1.1", "8.8.8.8", "baidu.com"],
+        "interval_sec": 10,
+        "ping_count": 3,
+        "timeout_sec": 2,
+        "failure_threshold": 5
+    },
+    "network": {
+        "interface": "",
+        "gateway": "",
+        "current_src_ip": "",
+        "available_ips": []
+    },
+    "cloudflare": {
+        "api_token": "",
+        "zone_id": "",
+        "domain": "example.com",
+        "delete_old_records": true,
+        "add_new_record": true,
+        "record_ttl": 120
+    },
+    "web": {
+        "port": 5000,
+        "username": "admin",
+        "password_hash": ""
+    }
+}
