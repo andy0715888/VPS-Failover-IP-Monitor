@@ -1,11 +1,11 @@
 {
-    "enabled": true,
     "monitor": {
+        "enabled": true,
         "targets": ["1.1.1.1", "8.8.8.8"],
         "interval_sec": 10,
         "ping_count": 3,
         "timeout_sec": 2,
-        "failure_threshold": 4
+        "failure_threshold": 5
     },
     "network": {
         "interface": "",
@@ -15,7 +15,7 @@
     },
     "cloudflare": {
         "api_token": "",
-        "zone_ids": {},
+        "zone_id": "",
         "domains": ["example.com", "another.com"],
         "delete_old_records": true,
         "add_new_record": true,
