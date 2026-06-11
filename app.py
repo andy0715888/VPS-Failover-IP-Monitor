@@ -3,7 +3,6 @@
 import os
 import json
 import threading
-import time
 import hashlib
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 
@@ -13,17 +12,14 @@ app.secret_key = os.urandom(24)
 CONFIG_FILE = '/opt/ip_failover/config.json'
 LOG_DIR = '/opt/ip_failover/logs'
 
-# 导入模块
 from modules.config import load_config, save_config, get_current_status
 from modules.monitor import MonitorThread
 from modules.switch_ip import switch_outgoing_ip
 from modules.cloudflare_dns import delete_old_records, add_new_record
 
-# 全局监控线程对象
 monitor_thread = None
 
 def require_auth(func):
-    """登录验证装饰器"""
     def wrapper(*args, **kwargs):
         if not session.get('logged_in'):
             return redirect(url_for('login'))
@@ -67,8 +63,11 @@ def index():
 @require_auth
 def settings():
     if request.method == 'POST':
+        domains = request.form.get('domains', '').splitlines()
+        domains = [d.strip() for d in domains if d.strip()]
         new_config = {
             "monitor": {
+                "enabled": request.form.get('monitor_enabled') == 'on',
                 "targets": request.form.get('targets').splitlines(),
                 "interval_sec": int(request.form.get('interval_sec')),
                 "ping_count": int(request.form.get('ping_count')),
@@ -84,7 +83,7 @@ def settings():
             "cloudflare": {
                 "api_token": request.form.get('api_token'),
                 "zone_id": request.form.get('zone_id'),
-                "domain": request.form.get('domain'),
+                "domains": domains,
                 "delete_old_records": request.form.get('delete_old_records') == 'on',
                 "add_new_record": request.form.get('add_new_record') == 'on',
                 "record_ttl": int(request.form.get('record_ttl'))
@@ -128,6 +127,18 @@ def api_switch_now():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
 
+@app.route('/api/monitor/toggle', methods=['POST'])
+@require_auth
+def api_toggle_monitor():
+    """启用/禁用监控"""
+    data = request.get_json()
+    enabled = data.get('enabled', True)
+    config = load_config(CONFIG_FILE)
+    config['monitor']['enabled'] = enabled
+    save_config(CONFIG_FILE, config)
+    restart_monitor()
+    return jsonify({"status": "success", "enabled": enabled})
+
 def restart_monitor():
     global monitor_thread
     if monitor_thread and monitor_thread.is_alive():
@@ -135,16 +146,7 @@ def restart_monitor():
         monitor_thread.join(timeout=2)
     monitor_thread = MonitorThread(CONFIG_FILE, LOG_DIR)
     monitor_thread.start()
-@app.route('/api/toggle', methods=['POST'])
-@require_auth
-def api_toggle():
-    config = load_config(CONFIG_FILE)
-    new_state = not config.get('enabled', True)
-    config['enabled'] = new_state
-    save_config(CONFIG_FILE, config)
-    # 重启监控线程以立即生效
-    restart_monitor()
-    return jsonify({"status": "success", "enabled": new_state})
+
 if __name__ == '__main__':
     config = load_config(CONFIG_FILE)
     port = config.get('web', {}).get('port', 5000)
