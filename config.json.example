@@ -1,6 +1,6 @@
 {
+    "enabled": true,
     "monitor": {
-        "enabled": true,
         "targets": ["1.1.1.1", "8.8.8.8"],
         "interval_sec": 10,
         "ping_count": 3,
@@ -15,7 +15,7 @@
     },
     "cloudflare": {
         "api_token": "",
-        "zone_id": "",
+        "zone_ids": {},
         "domains": ["example.com", "another.com"],
         "delete_old_records": true,
         "add_new_record": true,
