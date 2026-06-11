@@ -3,114 +3,139 @@
 <head>
     <title>设置 - VPS Failover Monitor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background: #f4f6f9; }
+        .card { border-radius: 1rem; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05); }
+        .form-label i { margin-right: 0.5rem; color: #0d6efd; }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="/">IP Failover Monitor</a>
+        <a class="navbar-brand" href="/"><i class="bi bi-shield-shaded"></i> IP Failover Monitor</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/">仪表板</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/settings">设置</a></li>
-                <li class="nav-item"><a class="nav-link" href="/logs">日志</a></li>
+                <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-speedometer2"></i> 仪表板</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/settings"><i class="bi bi-gear"></i> 设置</a></li>
+                <li class="nav-item"><a class="nav-link" href="/logs"><i class="bi bi-journal-text"></i> 日志</a></li>
             </ul>
-            <a href="/logout" class="btn btn-outline-light btn-sm">登出</a>
+            <a href="/logout" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> 登出</a>
         </div>
     </div>
 </nav>
 <div class="container mt-4">
-    <h2>系统设置</h2>
+    <h2 class="mb-4"><i class="bi bi-sliders2"></i> 系统设置</h2>
     <form method="post" id="settingsForm">
         <div class="row">
             <div class="col-md-6">
-                <h4>监控设置</h4>
-                <div class="mb-3">
-                    <label>监控目标 (每行一个)</label>
-                    <textarea name="targets" class="form-control" rows="3">{% for t in config.monitor.targets %}{{ t }}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-play-circle"></i> 监控设置</h5>
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="monitor_enabled" id="monitorEnabled" {% if config.monitor.enabled %}checked{% endif %}>
+                            <label class="form-check-label" for="monitorEnabled">启用监控线程</label>
+                        </div>
+                        <div class="mb-3">
+                            <label><i class="bi bi-bullseye"></i> 监控目标 (每行一个)</label>
+                            <textarea name="targets" class="form-control" rows="3">{% for t in config.monitor.targets %}{{ t }}
 {% endfor %}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>检查间隔(秒)</label>
+                            <input type="number" name="interval_sec" class="form-control" value="{{ config.monitor.interval_sec }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>每次 Ping 次数</label>
+                            <input type="number" name="ping_count" class="form-control" value="{{ config.monitor.ping_count }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>Ping 超时(秒)</label>
+                            <input type="number" name="timeout_sec" class="form-control" value="{{ config.monitor.timeout_sec }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>失败阈值(次数)</label>
+                            <input type="number" name="failure_threshold" class="form-control" value="{{ config.monitor.failure_threshold }}">
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label>检查间隔(秒)</label>
-                    <input type="number" name="interval_sec" class="form-control" value="{{ config.monitor.interval_sec }}">
-                </div>
-                <div class="mb-3">
-                    <label>每次 Ping 次数</label>
-                    <input type="number" name="ping_count" class="form-control" value="{{ config.monitor.ping_count }}">
-                </div>
-                <div class="mb-3">
-                    <label>Ping 超时(秒)</label>
-                    <input type="number" name="timeout_sec" class="form-control" value="{{ config.monitor.timeout_sec }}">
-                </div>
-                <div class="mb-3">
-                    <label>失败阈值(次数)</label>
-                    <input type="number" name="failure_threshold" class="form-control" value="{{ config.monitor.failure_threshold }}">
-                </div>
-
-                <h4 class="mt-3">网络设置</h4>
-                <div class="mb-3">
-                    <label>网卡接口</label>
-                    <input type="text" name="interface" class="form-control" value="{{ config.network.interface }}">
-                </div>
-                <div class="mb-3">
-                    <label>网关</label>
-                    <input type="text" name="gateway" class="form-control" value="{{ config.network.gateway }}">
-                </div>
-                <div class="mb-3">
-                    <label>当前出口 IP</label>
-                    <input type="text" name="current_src_ip" class="form-control" value="{{ config.network.current_src_ip }}">
-                </div>
-                <div class="mb-3">
-                    <label>可用 IP 列表 (每行一个)</label>
-                    <textarea name="available_ips" class="form-control" rows="3">{% for ip in config.network.available_ips %}{{ ip }}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-hdd-stack"></i> 网络设置</h5>
+                        <div class="mb-3">
+                            <label>网卡接口</label>
+                            <input type="text" name="interface" class="form-control" value="{{ config.network.interface }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>网关</label>
+                            <input type="text" name="gateway" class="form-control" value="{{ config.network.gateway }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>当前出口 IP</label>
+                            <input type="text" name="current_src_ip" class="form-control" value="{{ config.network.current_src_ip }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>可用 IP 列表 (每行一个)</label>
+                            <textarea name="available_ips" class="form-control" rows="3">{% for ip in config.network.available_ips %}{{ ip }}
 {% endfor %}</textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
-
             <div class="col-md-6">
-                <h4>Cloudflare 设置</h4>
-                <div class="mb-3">
-                    <label>API Token</label>
-                    <input type="text" name="api_token" class="form-control" value="{{ config.cloudflare.api_token }}">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-cloud"></i> Cloudflare 设置</h5>
+                        <div class="mb-3">
+                            <label>API Token</label>
+                            <input type="text" name="api_token" class="form-control" value="{{ config.cloudflare.api_token }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>Zone ID (可选，自动获取)</label>
+                            <input type="text" name="zone_id" class="form-control" value="{{ config.cloudflare.zone_id }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>域名列表 (每行一个，支持多个不同一级域名)</label>
+                            <textarea name="domains" class="form-control" rows="3">{% for d in config.cloudflare.domains %}{{ d }}
+{% endfor %}</textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="delete_old_records" {% if config.cloudflare.delete_old_records %}checked{% endif %}>
+                            <label class="form-check-label">切换时删除旧 IP 的 DNS 记录</label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="add_new_record" {% if config.cloudflare.add_new_record %}checked{% endif %}>
+                            <label class="form-check-label">切换时添加新 IP 的 DNS 记录</label>
+                        </div>
+                        <div class="mb-3">
+                            <label>DNS TTL (秒)</label>
+                            <input type="number" name="record_ttl" class="form-control" value="{{ config.cloudflare.record_ttl }}">
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label>Zone ID (可选，自动获取)</label>
-                    <input type="text" name="zone_id" class="form-control" value="{{ config.cloudflare.zone_id }}">
-                </div>
-                <div class="mb-3">
-                    <label>域名</label>
-                    <input type="text" name="domain" class="form-control" value="{{ config.cloudflare.domain }}">
-                </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" name="delete_old_records" {% if config.cloudflare.delete_old_records %}checked{% endif %}>
-                    <label class="form-check-label">切换时删除旧 IP 的 DNS 记录</label>
-                </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" name="add_new_record" {% if config.cloudflare.add_new_record %}checked{% endif %}>
-                    <label class="form-check-label">切换时添加新 IP 的 DNS 记录</label>
-                </div>
-                <div class="mb-3">
-                    <label>DNS TTL (秒)</label>
-                    <input type="number" name="record_ttl" class="form-control" value="{{ config.cloudflare.record_ttl }}">
-                </div>
-
-                <h4 class="mt-3">Web 面板设置</h4>
-                <div class="mb-3">
-                    <label>端口</label>
-                    <input type="number" name="web_port" class="form-control" value="{{ config.web.port }}">
-                </div>
-                <div class="mb-3">
-                    <label>管理员用户名</label>
-                    <input type="text" name="web_username" class="form-control" value="{{ config.web.username }}">
-                </div>
-                <div class="mb-3">
-                    <label>新密码 (留空则不变)</label>
-                    <input type="password" name="web_password" class="form-control">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-window"></i> Web 面板设置</h5>
+                        <div class="mb-3">
+                            <label>端口</label>
+                            <input type="number" name="web_port" class="form-control" value="{{ config.web.port }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>管理员用户名</label>
+                            <input type="text" name="web_username" class="form-control" value="{{ config.web.username }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>新密码 (留空则不变)</label>
+                            <input type="password" name="web_password" class="form-control">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">保存并重启监控</button>
-        <div id="saveResult" class="mt-2"></div>
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary btn-lg px-5"><i class="bi bi-save"></i> 保存并重启监控</button>
+        </div>
+        <div id="saveResult" class="mt-3 text-center"></div>
     </form>
 </div>
 <script>
@@ -121,10 +146,10 @@
         const result = await response.json();
         const resultDiv = document.getElementById('saveResult');
         if(result.status === 'success') {
-            resultDiv.innerHTML = '<div class="alert alert-success">设置已保存，监控已重启。</div>';
+            resultDiv.innerHTML = '<div class="alert alert-success"><i class="bi bi-check-circle"></i> 设置已保存，监控已重启。</div>';
             setTimeout(() => location.reload(), 2000);
         } else {
-            resultDiv.innerHTML = '<div class="alert alert-danger">保存失败: ' + result.message + '</div>';
+            resultDiv.innerHTML = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> 保存失败: ' + result.message + '</div>';
         }
     });
 </script>
