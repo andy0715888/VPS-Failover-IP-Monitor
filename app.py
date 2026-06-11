@@ -135,7 +135,16 @@ def restart_monitor():
         monitor_thread.join(timeout=2)
     monitor_thread = MonitorThread(CONFIG_FILE, LOG_DIR)
     monitor_thread.start()
-
+@app.route('/api/toggle', methods=['POST'])
+@require_auth
+def api_toggle():
+    config = load_config(CONFIG_FILE)
+    new_state = not config.get('enabled', True)
+    config['enabled'] = new_state
+    save_config(CONFIG_FILE, config)
+    # 重启监控线程以立即生效
+    restart_monitor()
+    return jsonify({"status": "success", "enabled": new_state})
 if __name__ == '__main__':
     config = load_config(CONFIG_FILE)
     port = config.get('web', {}).get('port', 5000)
